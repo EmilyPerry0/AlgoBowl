@@ -116,11 +116,11 @@ for row in range(rows):
 '''
 OUTPUT
 '''
-
-# The first line of output should contain a single integer which is the number of violations as described earlier
-
 with open('output/ex_output.txt', 'w') as file:
-    file.write(str(num_violations))
+    # The first line of output should contain a single integer (number of violations)
+    file.write(str(num_violations) + '\n')
 
-# The next lines each contain exactly c chars. 
-# The same chars are used from the input file, with the 'L' replacing '.' chars where lights were added
+    # The next lines each contain exactly c chars. 
+    # The same chars are used from the input file, with the 'L' replacing '.' chars where lights were added
+    for row in grid:
+        file.write(''.join(map(str, row)) + '\n')
