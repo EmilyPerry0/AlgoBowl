@@ -37,8 +37,6 @@ for row in range(rows):
 
         # check to see if it's a number
         if curr_element == '0' or curr_element == '1' or curr_element == '2' or curr_element == '3' or curr_element == '4':
-            # if it is a number convert it to an int so we can compare it to the number of surrounding lightbulbs
-            curr_element = int(curr_element)
 
             # loop over the four surrounding squares and count the number of lightbulbs
             if row != 0 and grid[row - 1][col] == 'L':
@@ -51,10 +49,68 @@ for row in range(rows):
                 num_lightbulbs = num_lightbulbs + 1
             
             # its a violation if the number of lightbults does not match curr_element number
-            if not curr_element == num_lightbulbs:
+            if not int(curr_element) == num_lightbulbs:
                 num_violations = num_violations + 1
             
             num_lightbulbs = 0
+        
+        # check to see if it's a lightbulb
+        elif curr_element == 'L':
+            # scan in all directions to see if the lightbulb lights up another lightbulb
+            curr_row = row
+            curr_col = col
+            violation_found = False
+
+            # scan up
+            while curr_row != 0:
+                curr_row = curr_row - 1
+                if grid[curr_row][col] == 'L':
+                    num_violations = num_violations + 1
+                    violation_found = True
+                    break
+                # walls and numbers block light
+                elif grid[curr_row][col] != '.':
+                    break
+
+            # scan down
+            if not violation_found:
+                curr_row = row
+                while curr_row != rows - 1:
+                    curr_row = curr_row + 1
+                    if grid[curr_row][col] == 'L':
+                        num_violations = num_violations + 1
+                        violation_found = True
+                        break
+                    # walls and numbers block light
+                    elif grid[curr_row][col] != '.':
+                        break
+
+            # scan left
+            if not violation_found:
+                while curr_col != 0:
+                    curr_col = curr_col - 1
+                    if grid[row][curr_col] == 'L':
+                        num_violations = num_violations + 1
+                        violation_found = True
+                        break
+                    # walls and numbers block light
+                    elif grid[row][curr_col] != '.':
+                        break
+
+            # scan right
+            if not violation_found:
+                curr_col = col
+                while curr_col != cols - 1:
+                    curr_col = curr_col + 1
+                    if grid[row][curr_col] == 'L':
+                        num_violations = num_violations + 1
+                        violation_found = True
+                        break
+                    # walls and numbers block light
+                    elif grid[row][curr_col] != '.':
+                        break
+
+
 
 
 '''
