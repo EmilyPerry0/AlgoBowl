@@ -1,4 +1,54 @@
 '''
+HELPER FUNCTIONS
+'''
+def scan_cell_directions(grid, row, col, target_char):
+  """Scans the cell at (row, col) in all four directions until hitting an edge, a specified wall character, or finding the target character.
+
+  Args:
+    grid: The 2D grid of characters.
+    row: The row index of the cell to scan.
+    col: The column index of the cell to scan.
+    target_char: The character to search for.
+
+  Returns:
+    True if the target character is found in any of the adjacent cells until an edge or wall, False otherwise.
+  """
+
+  rows = len(grid)
+  cols = len(grid[0])
+  wall_chars = ['X', '0', '1', '2', '3', '4']
+
+  # Check up
+  r = row - 1
+  while r >= 0 and grid[r][col] != target_char and all(grid[r][col] != wall_char for wall_char in wall_chars):
+    r -= 1
+  if r >= 0 and grid[r][col] == target_char:
+    return True
+
+  # Check down
+  r = row + 1
+  while r < rows and grid[r][col] != target_char and all(grid[r][col] != wall_char for wall_char in wall_chars):
+    r += 1
+  if r < rows and grid[r][col] == target_char:
+    return True
+
+  # Check left
+  c = col - 1
+  while c >= 0 and grid[row][c] != target_char and all(grid[row][c] != wall_char for wall_char in wall_chars):
+    c -= 1
+  if c >= 0 and grid[row][c] == target_char:
+    return True
+
+  # Check right
+  c = col + 1
+  while c < cols and grid[row][c] != target_char and all(grid[row][c] != wall_char for wall_char in wall_chars):
+    c += 1
+  if c < cols and grid[row][c] == target_char:
+    return True
+
+  return False
+
+'''
 INPUT
 '''
 # The first line of the input file is two ints separated by a space, indicating # of rows and cols in the grid
@@ -19,17 +69,15 @@ for row in range(rows):
         if grid[row][col] == '.':
             grid[row][col] = 'L'
 
-# To print the 2D grid
-for row in grid:
-    print(row)
-
 '''
 VERIFICATION
 
 this section will count the number of violations in the output.
+it will also make sure each blank cell is lit up.
 it will also make sure objects that cannot be overwritten are not overwritten 
-    (eg a lightbulb cannot be placed on an 'X' or a '2')
+    (eg a lightbulb cannot be placed on an 'X' or a '2') TODO!
 '''
+# count violations
 for row in range(rows):
     for col in range(cols):
         curr_element = grid[row][col]
@@ -57,59 +105,18 @@ for row in range(rows):
         # check to see if it's a lightbulb
         elif curr_element == 'L':
             # scan in all directions to see if the lightbulb lights up another lightbulb
-            curr_row = row
-            curr_col = col
-            violation_found = False
+            if scan_cell_directions(grid, row, col, 'L'):
+                num_violations += 1
 
-            # scan up
-            while curr_row != 0:
-                curr_row = curr_row - 1
-                if grid[curr_row][col] == 'L':
-                    num_violations = num_violations + 1
-                    violation_found = True
-                    break
-                # walls and numbers block light
-                elif grid[curr_row][col] != '.':
-                    break
-
-            # scan down
-            if not violation_found:
-                curr_row = row
-                while curr_row != rows - 1:
-                    curr_row = curr_row + 1
-                    if grid[curr_row][col] == 'L':
-                        num_violations = num_violations + 1
-                        violation_found = True
-                        break
-                    # walls and numbers block light
-                    elif grid[curr_row][col] != '.':
-                        break
-
-            # scan left
-            if not violation_found:
-                while curr_col != 0:
-                    curr_col = curr_col - 1
-                    if grid[row][curr_col] == 'L':
-                        num_violations = num_violations + 1
-                        violation_found = True
-                        break
-                    # walls and numbers block light
-                    elif grid[row][curr_col] != '.':
-                        break
-
-            # scan right
-            if not violation_found:
-                curr_col = col
-                while curr_col != cols - 1:
-                    curr_col = curr_col + 1
-                    if grid[row][curr_col] == 'L':
-                        num_violations = num_violations + 1
-                        violation_found = True
-                        break
-                    # walls and numbers block light
-                    elif grid[row][curr_col] != '.':
-                        break
-
+# make sure each cell is lit up
+for row in range(rows):
+    for col in range(cols):
+        # the only cells we care about are the '.' ones
+        if grid[row][col] == '.':
+            # scan in all directions to see if there's a lightbulb.
+            # if we don't find a lightbulb in any direction even once, the solution is invalid.
+            if not scan_cell_directions(grid, row, col, target_char='L'):
+                raise ValueError("Solution Invalid! Not all cells lit up.")
 
 
 
