@@ -275,7 +275,27 @@ def charlies_improvement_algo(grid, rows, cols):
                 cell_num = int(cell)
                 if cell_num == get_num_adj_avail_cells(refrence_grid, row, col):
                     refrence_grid, q = fancy_light_up(refrence_grid, row, col, q)
-                    if not q.empty():
+                    grid[row][col] = 'L'
+                    while not q.empty():
+                        next_cell = q.get()
+                        row = next_cell[0]
+                        col = next_cell[1]
+                        cell = grid[row][col]
+                        if cell == '1' or cell == '2' or cell == '3' or cell == '4':
+                            cell_num = int(cell)
+                            if cell_num == get_num_adj_avail_cells(refrence_grid, row, col):
+                                refrence_grid, q = fancy_light_up(refrence_grid, row, col, q)
+                                grid[row][col] = 'L'
+    
+    # now light up the rest of the unlit squares
+    for row in range(rows):
+        for col in range(cols):
+            if(refrence_grid[row][col] == '.' or refrence_grid[row][col] == '-'):
+                # if the cell isn't lit up yet, place a lightbulb 
+                grid[row][col] = 'L'
+                # then light up the squares it lights up in the lit_up_grid
+                refrence_grid = light_up_squares(refrence_grid, row, col)
+    return grid
                         
                 
 
@@ -289,10 +309,10 @@ VERIFICATION FUNCTION
 this section will count the number of violations in the output.
 it will also make sure each blank cell is lit up.
 it will also make sure objects that cannot be overwritten are not overwritten 
-    (eg a lightbulb cannot be placed on an 'X' or a '2') TODO!
+    (eg a lightbulb cannot be placed on an 'X' or a '2')
 '''
 # count violations
-def count_violations(grid, rows, cols):
+def count_violations(grid, rows, cols, orig_grid):
     num_violations = 0
     for row in range(rows):
         for col in range(cols):
@@ -333,6 +353,14 @@ def count_violations(grid, rows, cols):
                 # if we don't find a lightbulb in any direction even once, the solution is invalid.
                 if not scan_cell_directions(grid, row, col, target_char='L'):
                     raise ValueError("Solution Invalid! Not all cells lit up.")
+    
+    # make sure things that cannot be overwritten are not
+    for row in range(rows):
+        for col in range(cols):
+            orig_char = orig_grid[row][col]
+            if orig_char == '0' or orig_char == '1' or orig_char == '2' or orig_char == '3' or orig_char == '4' or orig_char == 'X':
+                if grid[row][col] != orig_char:
+                    raise ValueError("Something that cannot be overwritten was overwritten!")
     return num_violations
 
 
@@ -341,7 +369,8 @@ def count_violations(grid, rows, cols):
 OUTPUT FUNCTION
 '''
 def write_output(num_violations, grid, filename):
-    with open(f'output/output_{filename[12:]}', 'w') as file:
+    # with open(f'output/output_{filename[12:]}', 'w') as file:
+    with open(f'output/output_{filename[6:]}', 'w') as file:
         # The first line of output should contain a single integer (number of violations)
         file.write(str(num_violations) + '\n')
 
@@ -356,10 +385,16 @@ PROGRAM FLOW CODE
 files = get_all_files()
 for file in files:
     rows, cols, grid = get_input_info(file)
-    solved_grid = all_xs_algo(grid, rows, cols)
-    num_violations = count_violations(grid, rows, cols)
+    solved_grid = all_xs_algo(copy.deepcopy(grid), rows, cols)
+    num_violations = count_violations(solved_grid, rows, cols, grid)
     write_output(num_violations, solved_grid, file)
     print(f'solved board: {file}')
 print('solved all boards!')
+
+# file = 'input/ex.txt'
+# rows, cols, grid = get_input_info(file)
+# solved_grid = charlies_improvement_algo(copy.deepcopy(grid), rows, cols)
+# num_violations = count_violations(solved_grid, rows, cols, grid)
+# write_output(num_violations, solved_grid, file)
 
     
