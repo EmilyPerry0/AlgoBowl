@@ -369,8 +369,7 @@ def count_violations(grid, rows, cols, orig_grid):
 OUTPUT FUNCTION
 '''
 def write_output(num_violations, grid, filename):
-    # with open(f'output/output_{filename[12:]}', 'w') as file:
-    with open(f'output/output_{filename[6:]}', 'w') as file:
+    with open(f'output/output_{filename[12:]}', 'w') as file:
         # The first line of output should contain a single integer (number of violations)
         file.write(str(num_violations) + '\n')
 
