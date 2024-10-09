@@ -1,5 +1,6 @@
 import glob
 import copy
+import queue
 
 '''
 HELPER FUNCTIONS
@@ -82,7 +83,127 @@ def light_up_squares(grid, row, col):
     
     return grid
 
+def get_num_adj_avail_cells(grid, row, col):
+    num_avail_cells = 0
+    rows = len(grid)
+    cols = len(grid[0])  
 
+    if row != 0 and grid[row - 1][col] == '.':
+        num_avail_cells += 1
+    if row != rows - 1 and grid[row + 1][col] == '.':
+        num_avail_cells += 1
+    if col != 0 and grid[row][col -1] == '.':
+        num_avail_cells += 1
+    if col != cols - 1 and grid[row][col + 1] == '.':
+        num_avail_cells += 1
+    return num_avail_cells
+
+def fancy_light_up(grid, row, col, q):
+    wall_chars = ['X', '0', '1', '2', '3', '4']
+    rows = len(grid)
+    cols = len(grid[0])   
+
+    # traverse in the up dir, adding num tiles to q
+    r = row - 1
+    while r >= 0 and all(grid[r][col] != wall_char for wall_char in wall_chars):
+        grid[r][col] = '+'
+
+        if r != 0:
+            adj_up = grid[r - 1][col]
+        if r != rows - 1:
+            adj_down = grid[r + 1][col]
+        if col != 0:
+            adj_left = grid[r][col - 1]
+        if col != cols - 1:
+            adj_right = grid[r][col + 1]
+
+        if r != 0 and (adj_up == '1' or adj_up == '2' or adj_up == '3'):
+            q.put((r-1,col))
+        if r != rows - 1 and (adj_down == '1' or adj_down == '2' or adj_down == '3'):
+            q.put((r+1,col))
+        if col != 0 and (adj_left == '1' or adj_left == '2' or adj_left == '3'):
+            q.put((r,col-1))
+        if col != cols - 1 and (adj_right == '1' or adj_right == '2' or adj_right == '3'):
+            q.put((r,col+1))
+
+        r -= 1
+    
+    # traverse in the down dir, adding num tiles to q
+    r = row + 1
+    while r < rows and all(grid[r][col] != wall_char for wall_char in wall_chars):
+        grid[r][col] = '+'
+
+        if r != 0:
+            adj_up = grid[r - 1][col]
+        if r != rows - 1:
+            adj_down = grid[r + 1][col]
+        if col != 0:
+            adj_left = grid[r][col - 1]
+        if col != cols - 1:
+            adj_right = grid[r][col + 1]
+
+        if r != 0 and (adj_up == '1' or adj_up == '2' or adj_up == '3'):
+            q.put((r-1,col))
+        if r != rows - 1 and (adj_down == '1' or adj_down == '2' or adj_down == '3'):
+            q.put((r+1,col))
+        if col != 0 and (adj_left == '1' or adj_left == '2' or adj_left == '3'):
+            q.put((r,col-1))
+        if col != cols - 1 and (adj_right == '1' or adj_right == '2' or adj_right == '3'):
+            q.put((r,col+1))
+
+        r += 1
+
+    # traverse in the left dir, adding num tiles to q
+    c = col - 1
+    while c >= 0 and all(grid[row][c] != wall_char for wall_char in wall_chars):
+        grid[row][c] = '+'
+
+        if row != 0:
+            adj_up = grid[row - 1][c]
+        if row != rows - 1:
+            adj_down = grid[row + 1][c]
+        if c != 0:
+            adj_left = grid[row][c - 1]
+        if c != cols - 1:
+            adj_right = grid[row][c + 1]
+
+        if row != 0 and (adj_up == '1' or adj_up == '2' or adj_up == '3'):
+            q.put((row-1,c))
+        if row != rows - 1 and (adj_down == '1' or adj_down == '2' or adj_down == '3'):
+            q.put((row+1,c))
+        if c != 0 and (adj_left == '1' or adj_left == '2' or adj_left == '3'):
+            q.put((row,c-1))
+        if c != cols - 1 and (adj_right == '1' or adj_right == '2' or adj_right == '3'):
+            q.put((row,c+1))
+        
+        c -= 1
+
+    # traverse in the left dir, adding num tiles to q
+    c = col + 1
+    while c < cols and all(grid[row][c] != wall_char for wall_char in wall_chars):
+        grid[row][c] = '+'
+
+        if row != 0:
+            adj_up = grid[row - 1][c]
+        if row != rows - 1:
+            adj_down = grid[row + 1][c]
+        if c != 0:
+            adj_left = grid[row][c - 1]
+        if c != cols - 1:
+            adj_right = grid[row][c + 1]
+
+        if row != 0 and (adj_up == '1' or adj_up == '2' or adj_up == '3'):
+            q.put((row-1,c))
+        if row != rows - 1 and (adj_down == '1' or adj_down == '2' or adj_down == '3'):
+            q.put((row+1,c))
+        if c != 0 and (adj_left == '1' or adj_left == '2' or adj_left == '3'):
+            q.put((row,c-1))
+        if c != cols - 1 and (adj_right == '1' or adj_right == '2' or adj_right == '3'):
+            q.put((row,c+1))
+
+        c += 1
+    
+    return grid,q
 
 
 '''
@@ -98,7 +219,7 @@ def get_input_info(filename):
         return  rows, cols, [list(line.strip()) for line in file]
 
 '''
-ALGORITHM FUNCTION
+ALGORITHM FUNCTIONS
 this is a simple algorithm that just puts a lightbulb everywhere we can
 '''
 def solver_algo(grid, rows, cols):
@@ -108,8 +229,10 @@ def solver_algo(grid, rows, cols):
                 grid[row][col] = 'L'
     return grid
 
+'''
+REAL ALGOS
+'''
 def all_xs_algo(grid, rows, cols):
-    # place one light in first block
     lit_up_grid = copy.deepcopy(grid)
     for row in range(rows):
         for col in range(cols):
@@ -119,6 +242,44 @@ def all_xs_algo(grid, rows, cols):
                 # then light up the squares it lights up in the lit_up_grid
                 lit_up_grid = light_up_squares(lit_up_grid, row, col)
     return grid
+
+def charlies_improvement_algo(grid, rows, cols):
+    # refrence grid char keys:
+    #   X,0,1,2,3,4,.,L == defined in problem
+    #   + == lit up
+    #   - == temporarily avoid (from zeros n such) 
+    refrence_grid = copy.deepcopy(grid)
+    q = queue.Queue()
+
+    # mark all spaces around zeros as not placeable
+    for row in range(rows):
+        for col in range(cols):
+            if grid[row][col] == '0':
+                if row != 0 and grid[row - 1][col] == '.':
+                    refrence_grid[row - 1][col] = '-'
+                if row != rows - 1 and grid[row + 1][col] == '.':
+                    refrence_grid[row + 1][col] = '-'
+                if col != 0 and grid[row][col -1] == '.':
+                    refrence_grid[row][col - 1] = '-'
+                if col != cols - 1 and grid[row][col + 1] == '.':
+                    refrence_grid[row][col - 1] = '-'
+                
+    # find all pieces that have matching number of available tiles around it to num requried
+    #   then place lights there
+    # when lighting each tile, check all tiles that touch the lighting path to see if they are number tiles
+    #   if they are, add them to a queue or stack, then evaluate those tiles next
+    for row in range(rows):
+        for col in range(cols):
+            cell = grid[row][col]
+            if cell == '1' or cell == '2' or cell == '3' or cell == '4':
+                cell_num = int(cell)
+                if cell_num == get_num_adj_avail_cells(refrence_grid, row, col):
+                    refrence_grid, q = fancy_light_up(refrence_grid, row, col, q)
+                    if not q.empty():
+                        
+                
+
+
 
     
 
