@@ -1,4 +1,5 @@
 import glob
+import copy
 
 '''
 HELPER FUNCTIONS
@@ -50,6 +51,40 @@ def scan_cell_directions(grid, row, col, target_char):
 
   return False
 
+def light_up_squares(grid, row, col):
+    wall_chars = ['X', '0', '1', '2', '3', '4']
+    rows = len(grid)
+    cols = len(grid[0])   
+
+    # traverse in the up dir
+    r = row - 1
+    while r >= 0 and all(grid[r][col] != wall_char for wall_char in wall_chars):
+        grid[r][col] = '+'
+        r -= 1
+    
+    # traverse in the down dir
+    r = row + 1
+    while r < rows and all(grid[r][col] != wall_char for wall_char in wall_chars):
+        grid[r][col] = '+'
+        r += 1
+
+    # traverse in the left dir
+    c = col - 1
+    while c >= 0 and all(grid[row][c] != wall_char for wall_char in wall_chars):
+        grid[row][c] = '+'
+        c -= 1
+
+    # traverse in the left dir
+    c = col + 1
+    while c < cols and all(grid[row][c] != wall_char for wall_char in wall_chars):
+        grid[row][c] = '+'
+        c += 1
+    
+    return grid
+
+
+
+
 '''
 INPUT FUNCTIONS
 '''
@@ -72,6 +107,20 @@ def solver_algo(grid, rows, cols):
             if grid[row][col] == '.':
                 grid[row][col] = 'L'
     return grid
+
+def all_xs_algo(grid, rows, cols):
+    # place one light in first block
+    lit_up_grid = copy.deepcopy(grid)
+    for row in range(rows):
+        for col in range(cols):
+            if(lit_up_grid[row][col] == '.'):
+                # if the cell isn't lit up yet, place a lightbulb 
+                grid[row][col] = 'L'
+                # then light up the squares it lights up in the lit_up_grid
+                lit_up_grid = light_up_squares(lit_up_grid, row, col)
+    return grid
+
+    
 
 '''
 VERIFICATION FUNCTION
@@ -146,9 +195,10 @@ PROGRAM FLOW CODE
 files = get_all_files()
 for file in files:
     rows, cols, grid = get_input_info(file)
-    solved_grid = solver_algo(grid, rows, cols)
+    solved_grid = all_xs_algo(grid, rows, cols)
     num_violations = count_violations(grid, rows, cols)
     write_output(num_violations, solved_grid, file)
+    print(f'solved board: {file}')
 print('solved all boards!')
 
     
